@@ -1,0 +1,30 @@
+{
+  "name": "bamfa-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest run",
+    "generate:api": "openapi-typescript http://localhost:8000/api/v1/schema/?format=json -o lib/api/schema.d.ts"
+  },
+  "dependencies": {
+    "next": "15.*",
+    "react": "19.*",
+    "react-dom": "19.*"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "6.*",
+    "@testing-library/react": "16.*",
+    "@types/node": "22.*",
+    "@types/react": "19.*",
+    "@types/react-dom": "19.*",
+    "@vitejs/plugin-react": "4.*",
+    "jsdom": "25.*",
+    "openapi-typescript": "7.*",
+    "typescript": "5.*",
+    "vitest": "2.*"
+  }
+}
