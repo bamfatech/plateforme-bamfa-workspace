@@ -21,8 +21,7 @@ export async function apiFetch<T>(
   });
 
   if (!response.ok) {
-    const message = await response.text().catch(() => response.statusText);
-    throw new ApiError(response.status, message);
+    throw new ApiError(response.status, await response.text());
   }
 
   return (await response.json()) as T;

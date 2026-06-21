@@ -26,8 +26,8 @@ describe("apiFetch", () => {
   });
 
   it("leve ApiError avec le status sur reponse non-ok", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response("Forbidden", { status: 403 }),
+    vi.spyOn(globalThis, "fetch").mockImplementation(() =>
+      Promise.resolve(new Response("Forbidden", { status: 403 })),
     );
 
     await expect(apiFetch("/secret/")).rejects.toMatchObject({ status: 403 });
