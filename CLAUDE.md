@@ -1,6 +1,16 @@
-# CLAUDE.md — Règles du projet BAMFA
+# CLAUDE.md — Règles du projet BAMFA (dépôt workspace)
 
 Ce fichier définit les conventions que l'assistant (et les contributeurs) doivent suivre sur ce projet.
+
+## Structure des dépôts
+
+Le projet est réparti en **trois dépôts git indépendants** :
+
+- **workspace** (ce dépôt) : orchestration et documentation — `docs/`, `docker-compose.yml`, specs & plans. Il **ignore** `backend/` et `frontend/`.
+- **backend** : application Django + DRF (dossier `backend/`, son propre dépôt).
+- **frontend** : application Next.js (dossier `frontend/`, son propre dépôt).
+
+Les dossiers `backend/` et `frontend/` vivent physiquement sous ce workspace mais sont des dépôts autonomes (leur `.git` leur appartient) et sont exclus du suivi du workspace.
 
 ## Git / Commits
 

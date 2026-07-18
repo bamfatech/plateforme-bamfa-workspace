@@ -45,3 +45,7 @@ docker/data/
 
 # Misc
 *.log
+
+# Sous-depots independants (ignores par le workspace)
+/backend/
+/frontend/
