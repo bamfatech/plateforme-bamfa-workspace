@@ -40,8 +40,6 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# Docker
-docker/data/
 
 # Misc
 *.log
