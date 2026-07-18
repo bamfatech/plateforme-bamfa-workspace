@@ -13,6 +13,10 @@
 - **Modèles transverses** : `Mandate` (un seul mandat courant) + `PublishableMixin` (statut de publication, abstrait).
 - **Config** : `CORS_ALLOW_CREDENTIALS`, `CSRF_TRUSTED_ORIGINS`, cookies pilotés par env (`AUTH_COOKIE_SECURE`/`AUTH_COOKIE_SAMESITE`), `.env.example` complété (12 variables), clé secrète dev/CI ≥ 32 octets.
 
+## Addendum post-fusion (2026-06-21)
+
+- **Clé de signature JWT dédiée** (`12cc944`) : `SIMPLE_JWT["SIGNING_KEY"] = env("JWT_SIGNING_KEY", default=SECRET_KEY)`. Par défaut, les JWT restent signés avec `DJANGO_SECRET_KEY` (HS256) ; définir `JWT_SIGNING_KEY` (ajouté à `.env.example`) permet de roter la clé des tokens indépendamment des sessions/reset Django, et prépare un éventuel passage en asymétrique (RS256). Test `tests/test_jwt_config.py`. Suite : **21/21**, ruff propre.
+
 ## Développement (méthode)
 
 Subagent-driven : 7 tâches en TDD + revue par tâche + revue finale de branche. Fixes intermédiaires : clé secrète (sortie de tests propre), nettoyage ruff (exclusion des migrations auto-générées), endpoint `/auth/csrf/`, complétion de `.env.example`.
