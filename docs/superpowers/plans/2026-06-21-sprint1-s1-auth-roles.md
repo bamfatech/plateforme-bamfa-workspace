@@ -858,7 +858,7 @@ def unseed_roles(apps, schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ("accounts", "0001_initial"),
-        ("auth", "0012_alter_user_first_name_max_length"),
+        ("auth", "0001_initial"),
     ]
     operations = [migrations.RunPython(seed_roles, unseed_roles)]
 ```
