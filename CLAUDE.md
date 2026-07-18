@@ -33,3 +33,12 @@ Les dossiers `backend/` et `frontend/` vivent physiquement sous ce workspace mai
 
 - Cycle par module : mini-spec → plan d'implémentation → code (TDD) → revue → merge.
 - Priorisation stricte **P0 → P1 → P2**.
+
+## Organisation de la documentation
+
+- **Niveau 1 — architecture** (une seule fois, tout le projet) : `docs/superpowers/specs/2026-06-20-architecture-socle-technique-design.md`.
+- **Niveau 2 — overview de sprint** (1 par sprint, léger : slices + dépendances) : `docs/superpowers/specs/sprint-<n>/_sprint-<n>-overview.md`.
+- **Niveau 3 — par slice** :
+  - **1 plan d'implémentation par slice** (toujours) : `docs/superpowers/plans/`.
+  - **1 spec détaillée** uniquement si la slice est complexe/ambiguë (ex. paiement, auth, finances).
+- **`docs/done/` — compte-rendu par slice** : à la fin de **chaque slice mergée** (DoD atteinte), écrire un court CR dans `docs/done/` (ce qui est livré, commits, résumé des tests, points reportés). C'est la trace durable et versionnée des livrables.
