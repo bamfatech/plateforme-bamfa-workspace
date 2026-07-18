@@ -1,5 +1,6 @@
 # CR de slice — Sprint 1 / S0 : Socle technique
 
+> **Auteur** : Charlot DEDINOU
 > **Statut** : ✅ Terminé et mergé sur `main` · **Date** : 2026-06-21
 > **Plan** : [docs/superpowers/plans/2026-06-21-sprint1-s0-socle.md](../superpowers/plans/2026-06-21-sprint1-s0-socle.md)
 > **Overview** : [docs/superpowers/specs/2026-06-21-sprint1-overview.md](../superpowers/specs/2026-06-21-sprint1-overview.md)

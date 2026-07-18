@@ -1,5 +1,6 @@
 # Plateforme BAMFA — Document de référence d'architecture & socle technique
 
+> **Auteur** : Charlot DEDINOU
 > **Type** : Spec d'architecture transverse (livrable clé du Sprint 1 — « Document de référence de Vibe coding »)
 > **Date** : 2026-06-20
 > **Statut** : Validé pour rédaction du plan d'implémentation

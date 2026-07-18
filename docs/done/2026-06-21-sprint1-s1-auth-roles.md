@@ -1,5 +1,6 @@
 # CR de slice — Sprint 1 / S1 : Auth & rôles
 
+> **Auteur** : Charlot DEDINOU
 > **Statut** : ✅ Terminé et mergé sur `main` (dépôt **backend**) · **Date** : 2026-06-21
 > **Spec** : [../superpowers/specs/2026-06-21-sprint1-s1-auth-roles.md](../superpowers/specs/2026-06-21-sprint1-s1-auth-roles.md)
 > **Plan** : [../superpowers/plans/2026-06-21-sprint1-s1-auth-roles.md](../superpowers/plans/2026-06-21-sprint1-s1-auth-roles.md)

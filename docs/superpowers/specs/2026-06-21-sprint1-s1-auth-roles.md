@@ -1,5 +1,6 @@
 # Sprint 1 / S1 — Auth & rôles : Spec détaillée
 
+> **Auteur** : Charlot DEDINOU
 > **Type** : Spec de slice (niveau 3 — slice complexe → spec avant plan).
 > **Sprint** : 1 · **Slice** : S1 · **Dépôt** : `backend` · **Priorité** : P0
 > **Références** : [architecture (niveau 1)](2026-06-20-architecture-socle-technique-design.md) · [overview sprint 1](2026-06-21-sprint1-overview.md)

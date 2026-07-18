@@ -42,6 +42,16 @@ Trois dossiers, **tous à plat** (pas de sous-dossiers), avec un **nommage unifi
 - `docs/superpowers/plans/` — plans d'implémentation
 - `docs/done/` — comptes-rendus de slices terminées
 
+### En-tête des documents (obligatoire)
+
+Chaque document (`specs/`, `plans/`, `done/`) commence, juste après le titre `#`, par une ligne d'auteur — **le nom du rédacteur du document** (pas un nom figé) :
+
+```markdown
+> **Auteur** : <Nom du rédacteur>
+```
+
+Chaque contributeur met **son propre nom** sur les documents qu'il rédige. C'est valable pour les documents existants **et** à venir.
+
 ### Convention de nommage (unique)
 
 Format : **`YYYY-MM-DD-sprintN-sX-<nom>.md`**, à plat, avec le **même basename** réutilisé dans `specs/`, `plans/` et `done/` pour tracer une slice d'un coup d'œil. Segments omis quand ils n'ont pas de sens :

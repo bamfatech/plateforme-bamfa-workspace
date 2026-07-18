@@ -1,5 +1,6 @@
 # Sprint 1 / S1 — Auth & rôles : Implementation Plan
 
+> **Auteur** : Charlot DEDINOU
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Authentification des comptes internes (staff/admin) en JWT cookies httpOnly + fondation des rôles (groupes Django) + modèles transverses (`Mandate`, `PublishableMixin`).

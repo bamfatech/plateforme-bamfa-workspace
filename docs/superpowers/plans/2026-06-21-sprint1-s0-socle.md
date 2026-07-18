@@ -1,5 +1,6 @@
 # Sprint 1 / S0 — Socle technique : Implementation Plan
 
+> **Auteur** : Charlot DEDINOU
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Mettre en place un monorepo fonctionnel (backend Django/DRF + PostgreSQL, frontend Next.js, client API typé, CI) qui débloque le développement parallèle des autres slices.
