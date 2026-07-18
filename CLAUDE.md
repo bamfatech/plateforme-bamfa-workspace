@@ -36,9 +36,27 @@ Les dossiers `backend/` et `frontend/` vivent physiquement sous ce workspace mai
 
 ## Organisation de la documentation
 
-- **Niveau 1 — architecture** (une seule fois, tout le projet) : `docs/superpowers/specs/2026-06-20-architecture-socle-technique-design.md`.
-- **Niveau 2 — overview de sprint** (1 par sprint, léger : slices + dépendances) : `docs/superpowers/specs/sprint-<n>/_sprint-<n>-overview.md`.
+Trois dossiers, **tous à plat** (pas de sous-dossiers), avec un **nommage unifié** :
+
+- `docs/superpowers/specs/` — specs (architecture + overviews de sprint + specs de slice complexes)
+- `docs/superpowers/plans/` — plans d'implémentation
+- `docs/done/` — comptes-rendus de slices terminées
+
+### Convention de nommage (unique)
+
+Format : **`YYYY-MM-DD-sprintN-sX-<nom>.md`**, à plat, avec le **même basename** réutilisé dans `specs/`, `plans/` et `done/` pour tracer une slice d'un coup d'œil. Segments omis quand ils n'ont pas de sens :
+
+| Type de doc | Nommage | Exemple |
+|---|---|---|
+| Niveau 1 — architecture (hors sprint) | `YYYY-MM-DD-architecture-<nom>.md` | `2026-06-20-architecture-socle-technique-design.md` |
+| Niveau 2 — overview de sprint (pas de slice) | `YYYY-MM-DD-sprintN-overview.md` | `2026-06-21-sprint1-overview.md` |
+| Niveau 3 — slice (spec/plan/done) | `YYYY-MM-DD-sprintN-sX-<nom>.md` | `2026-06-21-sprint1-s0-socle.md` |
+
+### Cadence de production
+
+- **Niveau 1 — architecture** : une seule fois, tout le projet.
+- **Niveau 2 — overview de sprint** : 1 par sprint (léger : slices + dépendances).
 - **Niveau 3 — par slice** :
-  - **1 plan d'implémentation par slice** (toujours) : `docs/superpowers/plans/`.
+  - **1 plan d'implémentation par slice** (toujours).
   - **1 spec détaillée** uniquement si la slice est complexe/ambiguë (ex. paiement, auth, finances).
-- **`docs/done/` — compte-rendu par slice** : à la fin de **chaque slice mergée** (DoD atteinte), écrire un court CR dans `docs/done/` (ce qui est livré, commits, résumé des tests, points reportés). C'est la trace durable et versionnée des livrables.
+- **`docs/done/` — 1 CR par slice** : à la fin de **chaque slice mergée** (DoD atteinte), un court CR (livré, commits, résumé des tests, points reportés). Trace durable et versionnée des livrables.

@@ -2,7 +2,7 @@
 
 > **Type** : Doc de sprint (niveau 2 — léger). Liste les slices et leurs dépendances.
 > **Période** : Semaines 1-2 · **Phase** : 1 · **Priorité** : Très haute
-> **Référence** : [Document d'architecture (niveau 1)](../2026-06-20-architecture-socle-technique-design.md)
+> **Référence** : [Document d'architecture (niveau 1)](2026-06-20-architecture-socle-technique-design.md)
 
 ---
 

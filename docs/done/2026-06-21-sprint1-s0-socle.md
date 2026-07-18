@@ -2,7 +2,7 @@
 
 > **Statut** : ✅ Terminé et mergé sur `main` · **Date** : 2026-06-21
 > **Plan** : [docs/superpowers/plans/2026-06-21-sprint1-s0-socle.md](../superpowers/plans/2026-06-21-sprint1-s0-socle.md)
-> **Overview** : [docs/superpowers/specs/sprint-1/_sprint-1-overview.md](../superpowers/specs/sprint-1/_sprint-1-overview.md)
+> **Overview** : [docs/superpowers/specs/2026-06-21-sprint1-overview.md](../superpowers/specs/2026-06-21-sprint1-overview.md)
 
 ## Livré
 
