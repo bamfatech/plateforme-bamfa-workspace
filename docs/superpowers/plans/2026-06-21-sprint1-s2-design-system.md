@@ -324,7 +324,16 @@ api.interceptors.response.use(
       | (InternalAxiosRequestConfig & { _retry?: boolean })
       | undefined;
 
-    if (error.response?.status === 401 && original && !original._retry) {
+    // Ne jamais tenter de rafraîchir sur l'appel /auth/refresh/ lui-même
+    // (sinon un refresh qui répond 401 relancerait un refresh → récursion infinie).
+    const isRefreshCall = original?.url?.includes("/auth/refresh/") ?? false;
+
+    if (
+      error.response?.status === 401 &&
+      original &&
+      !original._retry &&
+      !isRefreshCall
+    ) {
       original._retry = true;
       try {
         await api.post("/auth/refresh/");
