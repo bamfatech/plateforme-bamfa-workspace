@@ -39,7 +39,9 @@ De `6548269` (composants de sections) à `fd0c64a` (fixes revue finale). Princip
 - **Contenu & photos réels** : remplacer les placeholders (textes de substitution, images picsum, avatars, liens réseaux, logos partenaires).
 - **Branchement du formulaire de contact** (POST + email) → **Sprint 2** (module `forms`).
 - **Pages dynamiques publiques** (Programmes, Réalisations, Actualités, Blogs, Événements, Opportunités, Annuaire alumni, Dons, Newsletter, redirections tierces réelles) → **Sprint 2**.
-- Nettoyage optionnel : composants `FeatureCard`/`Brand` non utilisés en prod (testés) ; le formulaire ne vide pas les champs après envoi (à faire au branchement Sprint 2) ; ajouter un check a11y automatisé (jest-axe).
+- Ajouter un **check a11y automatisé** (jest-axe) sur les 3 pages — seul point de la revue finale non traité (suivi outillage).
+
+*Tous les autres retours de la revue finale ont été traités* : contenu isolé, contraste AA (voiles), token `text-danger-text`, champs de contenu morts retirés, composants morts `Brand`/`FeatureCard` supprimés, fond de la page Contact séparé, formulaire vidé après envoi.
 
 ## Definition of Done — atteinte
 
