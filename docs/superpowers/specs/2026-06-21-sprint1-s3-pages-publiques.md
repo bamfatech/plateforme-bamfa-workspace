@@ -7,6 +7,19 @@
 
 ---
 
+## 0. Note de réalisation (structure finale livrée)
+
+En cours de réalisation, la structure a évolué (validée avec le porteur) pour éviter des pages trop courtes et augmenter la densité/richesse :
+
+- **Consolidation** : *Vision/mission/valeurs*, *Fonctionnement* et *Organigramme* ne sont plus des pages séparées — ils sont devenus des **sections d'une page « À propos » riche** (avec navigation par ancres). Le site public statique tient donc en **3 pages** : **Accueil**, **À propos** (hub), **Contact**.
+- **Enrichissement** : hero éditorial imagé, sections en *splits* alternés, **timeline** d'histoire, **FAQ** (accordéon natif `<details>`), **témoignages**, cartes programmes imagées, **bandeau partenaires en images**, **cartes membres** (photo + overlay bio au survol + liens LinkedIn/Facebook).
+- **Contact** : refonte en **panneau dégradé** (coordonnées) + formulaire.
+- **Footer** : refonte BAMFA (sombre, colonnes Découvrir/Plateformes/Contact, réseaux sociaux, redirections Transition/Baobab/ACN).
+- **Composants ajoutés** : `Eyebrow`, `SplitSection`, `ImageFeatureCard`, `Timeline`, `Testimonials`, `Faq`, `TeamMemberCard`, `Avatar` (photo/initiales), `SocialIcons`.
+- **Images** : placeholders (picsum via `remotePatterns`) + avatars ; **à remplacer par les vraies photos BAMFA**.
+
+Les sections 1-13 ci-dessous décrivent la spec initiale ; cette note prévaut là où elles divergent.
+
 ## 1. Objectif
 
 Construire les **pages publiques statiques** du site vitrine BAMFA sur les fondations du design system (S2) : une vitrine **riche et moderne** qui présente l'association, sa vision/mission/valeurs, son fonctionnement, son organigramme, et un point de contact — de quoi renforcer la visibilité et la crédibilité auprès des partenaires.
