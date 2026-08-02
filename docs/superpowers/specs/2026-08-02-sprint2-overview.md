@@ -53,37 +53,56 @@ S6 CONTENUS   S7 ALUMNI*   S8 ÉVÉNEMENTS   S10 FORMS   S11 NEWSLETTER*   S12 P
 
 ### P0 — cœur mise en ligne
 
-| Slice | Contenu | Dépend de | Spec ? | Profil |
+| Slice | Contenu | Dépend de | Spec ? | Vague · Dev |
 |---|---|---|---|---|
-| **S5 — Socle métier S2** | Celery/Redis, **`EmailService`** (repli console), **`PublishableMixin`** + **`Payment`/`PaymentProvider`** (stub), pagination/filtres/erreurs DRF standardisés, commande **seed** de démo, régé client OpenAPI | S1 | ❌ plan | back (+front léger) |
-| **S6 — Contenus / Actualités** (`cms`) | `Article` + `Category` (PublishableMixin), CRUD admin (Rédacteur), pages publiques liste/détail (SSR/ISR), SEO | S5 | ❌ plan | back + front |
-| **S7 — Alumni** (`alumni`) | Inscription en ligne → **validation admin** (email) → profil éditable ; **annuaire** (public/connecté) ; espace `(alumni)` ; statut de complétude | S5 | ✅ **spec** | back + front |
-| **S8 — Événements** (`events`) | Événements (PublishableMixin) + **inscriptions publiques** + email de confirmation ; CRUD admin ; page publique liste/détail + inscription | S5 | ❌ plan | back + front |
-| **S9 — Opportunités** (`opportunities`) | Opportunités + inscriptions + **partage ciblé** (email vers une sélection d'alumni, Celery) ; CRUD admin ; page publique | S5 + S7 | ✅ **spec** | back + front |
-| **S10 — Formulaires & Contact** (`forms`) | **Contact** (branche le POST du formulaire S3), suggestion, « Souvenir BAMFA » ; réception admin + email transactionnel | S5 | ❌ plan | back + front |
-| **S11 — Newsletter & Campagnes** (`newsletter`) | Abonnement public + **campagnes** (`EmailService` + Celery) + gestion admin | S5 | ✅ **spec** | back + front |
-| **S12 — Programmes & Projets** (`programs`, `projects`) | Contenus publiés (PublishableMixin), CRUD admin + pages publiques | S5 | ❌ plan | back + front |
+| **S5 — Socle métier S2** | Celery/Redis, **`EmailService`** (repli console), **`PublishableMixin`** + **`Payment`/`PaymentProvider`** (stub), pagination/filtres/erreurs DRF standardisés, commande **seed** de démo, régé client OpenAPI | S1 | ❌ plan | **V0 · A+B** |
+| **S6 — Contenus / Actualités** (`cms`) | `Article` + `Category` (PublishableMixin), CRUD admin (Rédacteur), pages publiques liste/détail (SSR/ISR), SEO | S5 | ❌ plan | **V1 · A** |
+| **S7 — Alumni** (`alumni`) | Inscription en ligne → **validation admin** (email) → profil éditable ; **annuaire** (public/connecté) ; espace `(alumni)` ; statut de complétude | S5 | ✅ **spec** | **V1 · B** |
+| **S8 — Événements** (`events`) | Événements (PublishableMixin) + **inscriptions publiques** + email de confirmation ; CRUD admin ; page publique liste/détail + inscription | S5 | ❌ plan | **V2 · A** |
+| **S9 — Opportunités** (`opportunities`) | Opportunités + inscriptions + **partage ciblé** (email vers une sélection d'alumni, Celery) ; CRUD admin ; page publique | S5 + S7 | ✅ **spec** | **V3 · A** |
+| **S10 — Formulaires & Contact** (`forms`) | **Contact** (branche le POST du formulaire S3), suggestion, « Souvenir BAMFA » ; réception admin + email transactionnel | S5 | ❌ plan | **V3 · B** |
+| **S11 — Newsletter & Campagnes** (`newsletter`) | Abonnement public + **campagnes** (`EmailService` + Celery) + gestion admin | S5 | ✅ **spec** | **V4 · A** |
+| **S12 — Programmes & Projets** (`programs`, `projects`) | Contenus publiés (PublishableMixin), CRUD admin + pages publiques | S5 | ❌ plan | **V2 · B** |
 
 ### P1 — visibilité renforcée
 
-| Slice | Contenu | Dépend de | Spec ? | Profil |
+| Slice | Contenu | Dépend de | Spec ? | Vague · Dev |
 |---|---|---|---|---|
-| **S13 — Réalisations & Succès alumni** (`realisations`) | Réalisations liées aux programmes + succès alumni ; CRUD admin + page publique | S12 + S7 | ❌ plan | back + front |
-| **S14 — Blogs & Commentaires** (`cms` blogs, `comments`) | Blogposts + **commentaires** + modération (Rédacteur) | S6 | ❌ plan | back + front |
-| **S15 — Partenaires** (`partners`) | Partenaires (logos publics) + **demandes de partenariat** (formulaire + réception admin) | S5 | ❌ plan | back + front |
-| **S16 — Dons & Sponsoring** (`donations`) | Dons + sponsoring + **paiement** (`PaymentProvider` manuel, FedaPay/Kkiapay branchable) + webhook + reçu email | S5 | ✅ **spec** | back + front |
-| **S17 — Messaging admin & Stats** (`messaging`, `stats`) | Envoi d'emails **ciblés** depuis l'admin (sélection d'alumni) + **vraies statistiques** du dashboard admin | S7 + contenus | ❌ plan | back + front |
-| **Redirections tierces** | Liens sortants Transition MCF / Baobab / ACN | — | intégré (nav/pages, déjà amorcé) | front |
+| **S13 — Réalisations & Succès alumni** (`realisations`) | Réalisations liées aux programmes + succès alumni ; CRUD admin + page publique | S12 + S7 | ❌ plan | **V4 · B** |
+| **S14 — Blogs & Commentaires** (`cms` blogs, `comments`) | Blogposts + **commentaires** + modération (Rédacteur) | S6 | ❌ plan | **V5 · A** |
+| **S15 — Partenaires** (`partners`) | Partenaires (logos publics) + **demandes de partenariat** (formulaire + réception admin) | S5 | ❌ plan | **V5 · B** |
+| **S16 — Dons & Sponsoring** (`donations`) | Dons + sponsoring + **paiement** (`PaymentProvider` manuel, FedaPay/Kkiapay branchable) + webhook + reçu email | S5 | ✅ **spec** | **V6 · A** |
+| **S17 — Messaging admin & Stats** (`messaging`, `stats`) | Envoi d'emails **ciblés** depuis l'admin (sélection d'alumni) + **vraies statistiques** du dashboard admin | S7 + contenus | ❌ plan | **V6 · B** |
+| **Redirections tierces** | Liens sortants Transition MCF / Baobab / ACN | — | intégré (nav/pages, déjà amorcé) | au fil de l'eau |
 
 ---
 
-## Ordre d'exécution retenu
+## Exécution parallèle — 2 développeurs (Dev A / Dev B)
 
-1. **S5** (socle métier) — débloque toutes les slices suivantes.
-2. **P0** : **S6** (contenus) → **S7** (alumni)\* → **S8** (événements) → **S9** (opportunités)\* → **S10** (forms/contact) → **S11** (newsletter)\* → **S12** (programmes/projets).
-3. **P1** : **S13** (réalisations) → **S14** (blogs/commentaires) → **S15** (partenaires) → **S16** (dons)\* → **S17** (messaging/stats).
+**Équipe : 2 développeurs.** Chaque slice = une app Django + des pages dédiées → conflits minimes. **Contrainte dure : S5 (socle) est fait en premier et seul** (il pose `EmailService`, `PublishableMixin`, `Payment`, Celery, seed → tout en dépend). Ensuite, le travail se répartit en **vagues parallèles** :
 
-`*` slices complexes : **spec détaillée** (brainstorm → spec → plan) avant l'implémentation. Les autres vont **directement au plan** (le socle étant posé et les patterns répétitifs).
+| Vague | **Dev A** | **Dev B** |
+|---|---|---|
+| **V0** | **S5 — Socle métier** (en binôme, puis merge sur `main`) | ↳ (idem, binôme) |
+| **V1** | **S6** — Contenus / Actualités | **S7** — Alumni \* *(lancé tôt : débloque S9, S13, S17)* |
+| **V2** | **S8** — Événements | **S12** — Programmes & Projets |
+| **V3** | **S9** — Opportunités \* *(S7 ✔)* | **S10** — Formulaires & Contact |
+| **V4** | **S11** — Newsletter \* | **S13** — Réalisations *(S12 + S7 ✔)* |
+| **V5** | **S14** — Blogs & Commentaires *(S6 ✔)* | **S15** — Partenaires |
+| **V6** | **S16** — Dons & Sponsoring \* | **S17** — Messaging admin & Stats *(S7 ✔)* |
+
+`*` = slice complexe → **spec détaillée** (brainstorm → spec → plan) avant l'implémentation. Les autres vont **directement au plan** (socle posé, patterns répétitifs).
+
+**Dépendances inter-pistes à respecter** (une seule règle : ne pas démarrer une slice avant que son prérequis soit mergé) :
+- **S9** (Dev A, V3) ⇐ **S7** (Dev B, V1) · **S13** (Dev B, V4) ⇐ **S12** (Dev B, V2) + **S7** · **S14** (Dev A, V5) ⇐ **S6** (Dev A, V1) · **S17** (Dev B, V6) ⇐ **S7**.
+
+### Règles de coordination (peu, mais réelles)
+
+- **Branche par slice** (`feat/<slice>`) + PR + revue + **merges fréquents** sur `main` (petits lots).
+- **`Sidebar` admin** : chaque module ajoute son entrée de nav → source de petits conflits ; merger souvent, ou centraliser les entrées dans un registre partagé posé en S5.
+- **Client OpenAPI** (`frontend/lib/api/schema.d.ts`) : régénérer (`npm run generate:api`) **après** le merge d'un backend qui change le schéma, pour repartir d'un client à jour.
+- **`common` backend + tokens front** : figés en S5, réutilisés partout (ne pas les diverger par piste).
+- **Répartition indicative** : Dev B prend **S7 (alumni)** tôt car c'est la slice qui débloque le plus ; Dev A avance sur la chaîne contenus. Les profils back/front étant mixtes par slice, chaque dev fait sa slice de bout en bout (backend + admin + public).
 
 ## Dépendances clés
 
