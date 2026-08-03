@@ -1447,9 +1447,15 @@ class InvitationActivateView(APIView):
         serializer = InvitationActivateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         profile = _resolve_or_400(serializer.validated_data["token"])
-        _user, created = services.claim_invitation(
-            profile, password=serializer.validated_data["password"]
-        )
+        # `claim_invitation` peut aussi lever `InvitationAlreadyUsed` (deux
+        # soumissions rapprochées du même jeton) : toute `InvitationError`
+        # sortant du service doit devenir un 400, à un seul endroit.
+        try:
+            _user, created = services.claim_invitation(
+                profile, password=serializer.validated_data["password"]
+            )
+        except InvitationError as exc:
+            raise ValidationError({"token": [str(exc)]}) from exc
         message = (
             "Votre accès est activé. Vous pouvez maintenant vous connecter."
             if created
