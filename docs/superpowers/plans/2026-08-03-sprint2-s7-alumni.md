@@ -2465,7 +2465,7 @@ router.register(
 - [ ] **Étape 7 : vérifier que les tests passent**
 
 Lancer : `.venv/bin/pytest tests/test_alumni_directory_api.py -q`
-Attendu : 15 passed (les deux tests paramétrés comptent pour 2 chacun)
+Attendu : 14 passed (les deux tests paramétrés comptent pour 2 chacun)
 
 - [ ] **Étape 8 : lint et commit**
 
@@ -2551,6 +2551,9 @@ def test_l_administration_voit_les_profils_sans_consentement_et_non_actifs():
 
 @pytest.mark.django_db
 def test_la_secretaire_lit_mais_ne_modifie_pas():
+    """Couvre les QUATRE actions réservées, pas seulement deux : sans cela,
+    retirer `archiver` ou `reactiver` de `ACTIONS_RESERVEES` ne casserait
+    aucun test — un trou d'autorisation invisible."""
     profil = _profil()
     client = _client("Secrétaire")
 
@@ -2559,8 +2562,8 @@ def test_la_secretaire_lit_mais_ne_modifie_pas():
         client.patch(f"{LISTE}{profil.pk}/", {"city": "Cotonou"}, format="json").status_code
         == 403
     )
-    assert client.post(f"{LISTE}{profil.pk}/suspendre/").status_code == 403
-    assert client.post(f"{LISTE}{profil.pk}/inviter/").status_code == 403
+    for action in ("suspendre", "reactiver", "archiver", "inviter"):
+        assert client.post(f"{LISTE}{profil.pk}/{action}/").status_code == 403, action
 
 
 @pytest.mark.django_db
@@ -2575,7 +2578,17 @@ def test_les_autres_roles_n_ont_aucun_acces(role):
 
 @pytest.mark.django_db
 def test_un_anonyme_est_refuse():
-    assert _client().get(LISTE).status_code in (401, 403)
+    """La liste **et** les quatre actions : un `AllowAny` posé par accident sur
+    une action passerait inaperçu si seule la liste était testée."""
+    profil = _profil()
+    client = _client()
+
+    assert client.get(LISTE).status_code in (401, 403)
+    for action in ("suspendre", "reactiver", "archiver", "inviter"):
+        assert client.post(f"{LISTE}{profil.pk}/{action}/").status_code in (
+            401,
+            403,
+        ), action
 
 
 @pytest.mark.django_db
