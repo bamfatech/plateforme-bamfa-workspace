@@ -3191,7 +3191,10 @@ Cette tâche ne touche pas à HTTP. Elle livre le cœur **neutre vis-à-vis de l
 - Consomme : `AlumniProfile`, `AlumniImport`, `AlumniImportError`, `normalize_email`, `Sector`, `Gender`, `PROMOTION_MIN`, `promotion_max` (tâche 2).
 - Produit : `ImportFormatError` · `REQUIRED_COLUMNS` · `COLUMN_TO_FIELD` · `normalize_header(name) -> str` · `parse_csv(uploaded_file) -> list[tuple[int, dict]]` (lève `ImportFormatError`) · `import_alumni(rows, *, uploaded_by, strict=False, filename="") -> AlumniImport`.
 
-**Invariant garanti par les compteurs** : `rows_created + rows_updated + rows_skipped + rows_failed == rows_total`.
+**Sémantique des compteurs — deux régimes, tous deux à verrouiller par un test :**
+
+- **Mode par défaut** : `rows_created + rows_updated + rows_skipped + rows_failed == rows_total`. L'identité tient, doublon intra-fichier compris (la seconde occurrence passe par le chemin de mise à jour, elle n'est pas comptée deux fois).
+- **Mode strict** : les compteurs d'écriture (`created`, `updated`, `skipped`) valent **0**, la transaction ayant été annulée ; `rows_failed` compte la ligne fautive et `rows_total` compte les lignes **lues jusqu'à l'abandon inclus**, pas le fichier entier. L'identité ne tient donc pas, et c'est voulu : le rapport dit ce qui a été *lu*, pas ce qui a été écrit.
 
 - [ ] **Étape 1 : écrire les tests qui échouent**
 
