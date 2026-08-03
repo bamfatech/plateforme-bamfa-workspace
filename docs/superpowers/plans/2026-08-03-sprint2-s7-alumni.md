@@ -1765,6 +1765,28 @@ PROFILE_COPY_FIELDS = (
 )
 
 
+class RegistrationAlreadyReviewed(Exception):
+    """La demande n'est plus en attente — instruction concurrente ou rejouée."""
+
+
+DEJA_INSTRUITE_MESSAGE = "Cette demande a déjà été instruite."
+
+
+def _lock_pending_registration(registration):
+    """Re-lit la demande sous verrou et vérifie qu'elle est encore en attente.
+
+    Le contrôle de statut doit être **atomique** : un simple `if` dans la vue
+    est un check-then-act, et deux approbations simultanées le franchiraient
+    toutes deux avant que l'une ait committé — la seconde échouerait alors sur
+    l'unicité de `AlumniProfile.email`, en `IntegrityError` non traduite.
+    À appeler à l'intérieur d'un `transaction.atomic()`.
+    """
+    locked = AlumniRegistration.objects.select_for_update().get(pk=registration.pk)
+    if locked.status != AlumniRegistration.Status.EN_ATTENTE:
+        raise RegistrationAlreadyReviewed(DEJA_INSTRUITE_MESSAGE)
+    return locked
+
+
 def approve_registration(registration, *, reviewer):
     """Crée le membre depuis la demande, puis envoie le lien d'invitation.
 
@@ -1772,6 +1794,7 @@ def approve_registration(registration, *, reviewer):
     laisser filer une invitation vers un profil qui n'existe pas.
     """
     with transaction.atomic():
+        registration = _lock_pending_registration(registration)
         profile = AlumniProfile.objects.create(
             source=AlumniProfile.Source.INSCRIPTION,
             **{champ: getattr(registration, champ) for champ in PROFILE_COPY_FIELDS},
@@ -1794,6 +1817,7 @@ def approve_registration(registration, *, reviewer):
 
 def reject_registration(registration, *, reviewer, reason=""):
     with transaction.atomic():
+        registration = _lock_pending_registration(registration)
         registration.status = AlumniRegistration.Status.REJETEE
         registration.reviewed_by = reviewer
         registration.reviewed_at = timezone.now()
@@ -2003,6 +2027,20 @@ from .serializers import (
 )
 
 
+@contextmanager
+def _already_reviewed_as_400():
+    """Traduit en 400 le refus levé sous verrou par le service.
+
+    Un seul endroit de traduction, sur le modèle de
+    `_invitation_errors_as_400()` : sans lui, l'exception métier remonterait
+    en 500 (`bamfa_exception_handler` ignore les exceptions non-DRF).
+    """
+    try:
+        yield
+    except services.RegistrationAlreadyReviewed as exc:
+        raise ValidationError({"statut": [str(exc)]}) from exc
+
+
 @extend_schema(tags=["alumni"])
 class AdminRegistrationViewSet(viewsets.ReadOnlyModelViewSet):
     """File d'attente des demandes d'inscription.
@@ -2023,18 +2061,22 @@ class AdminRegistrationViewSet(viewsets.ReadOnlyModelViewSet):
         return super().get_permissions()
 
     def _en_attente_ou_400(self):
+        """Pré-contrôle de confort : la garantie, elle, est portée par le
+        verrou de `_lock_pending_registration` dans le service. La correction
+        ne doit pas dépendre du fait que cette méthode soit appelée."""
         registration = self.get_object()
         if registration.status != AlumniRegistration.Status.EN_ATTENTE:
-            raise ValidationError(
-                {"statut": ["Cette demande a déjà été instruite."]}
-            )
+            raise ValidationError({"statut": [services.DEJA_INSTRUITE_MESSAGE]})
         return registration
 
     @extend_schema(request=None, responses={200: AdminProfileSerializer})
     @action(detail=True, methods=["post"], url_path="approuver")
     def approuver(self, request, pk=None):
         registration = self._en_attente_ou_400()
-        profile = services.approve_registration(registration, reviewer=request.user)
+        with _already_reviewed_as_400():
+            profile = services.approve_registration(
+                registration, reviewer=request.user
+            )
         return Response(AdminProfileSerializer(profile).data)
 
     @extend_schema(
@@ -2045,11 +2087,12 @@ class AdminRegistrationViewSet(viewsets.ReadOnlyModelViewSet):
         registration = self._en_attente_ou_400()
         serializer = RejectSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        services.reject_registration(
-            registration,
-            reviewer=request.user,
-            reason=serializer.validated_data["motif"],
-        )
+        with _already_reviewed_as_400():
+            services.reject_registration(
+                registration,
+                reviewer=request.user,
+                reason=serializer.validated_data["motif"],
+            )
         registration.refresh_from_db()
         return Response(self.get_serializer(registration).data)
 ```
