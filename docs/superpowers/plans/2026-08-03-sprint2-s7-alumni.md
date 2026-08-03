@@ -3010,7 +3010,10 @@ def test_la_completude_progresse_avec_les_champs_remplis(alumni):
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "champ,valeur",
-    [("email", "autre@example.org"), ("promotion", 2000), ("status", "suspendu")],
+    # `promotion` doit recevoir une année **valide** (2019 et non 2000) : sous
+    # `PROMOTION_MIN = 2010`, la valeur serait de toute façon rejetée par le
+    # validateur, et le test passerait que le champ soit protégé ou non.
+    [("email", "autre@example.org"), ("promotion", 2019), ("status", "suspendu")],
 )
 def test_les_champs_reserves_a_l_administration_ne_sont_pas_modifiables(
     alumni, champ, valeur
@@ -3041,11 +3044,17 @@ def test_un_anonyme_est_refuse(db):
 @pytest.mark.django_db
 def test_le_profil_d_autrui_est_inatteignable(alumni):
     """L'endpoint n'expose aucun identifiant : le périmètre est porté par le
-    queryset, filtré sur `user=request.user`."""
+    queryset, filtré sur `user=request.user`.
+
+    Le nom de l'autre profil est choisi pour **précéder** celui du titulaire
+    dans l'ordre par défaut (`last_name, first_name`). Sans cela, le test
+    passerait même si le filtre `user=` était retiré : le titulaire sortirait
+    premier par hasard, et le test décrirait l'isolation sans la contraindre.
+    """
     client, profil = alumni
     autre = AlumniProfile.objects.create(
         first_name="Kofi",
-        last_name="Mensah",
+        last_name="Aaronson",
         email="kofi@example.org",
         promotion=2019,
     )
