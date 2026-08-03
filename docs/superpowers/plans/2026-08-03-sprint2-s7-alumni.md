@@ -27,6 +27,7 @@ Ces règles s'appliquent à **toutes** les tâches, sans être répétées.
 - **API sous `/api/v1/`**, documentée via drf-spectacular (`@extend_schema` sur toute action personnalisée, tag `alumni`).
 - **Migrations obligatoires** : `python manage.py makemigrations --check --dry-run` doit rester propre.
 - **Noms des paramètres de filtre en français** : `statut`, `promotion`, `secteur`, `pays`, `consentement`, `a_un_compte`, `search`, `ordering`, `page`, `page_size`.
+- **Le champ `promotion` ne doit jamais être dérivé automatiquement par `ModelSerializer` en écriture.** Le modèle porte `MaxValueValidator(promotion_max)`, dont la borne est une **fonction** ; DRF recopie `validator.limit_value` dans `max_value`, et drf-spectacular lit cet attribut sans l'appeler → la génération du schéma OpenAPI plante (`TypeError: int() argument must be … not 'function'`). Tout sérialiseur exposant `promotion` **en écriture** déclare donc le champ via le helper partagé `promotion_serializer_field()` de `apps/alumni/serializers.py` (posé en tâche 3). En lecture seule il n'y a rien à faire : DRF retire `max_value` et `validators` des champs `read_only`.
 
 ### Commandes de référence
 
@@ -1901,6 +1902,9 @@ class RejectSerializer(serializers.Serializer):
 class AdminProfileSerializer(serializers.ModelSerializer):
     """Niveau administration : tous les champs, e-mail et téléphone inclus."""
 
+    # `promotion` est modifiable ici : le helper partagé est obligatoire, sans
+    # quoi la génération du schéma OpenAPI plante (voir Contraintes globales).
+    promotion = promotion_serializer_field()
     completeness = serializers.IntegerField(read_only=True)
     has_account = serializers.BooleanField(read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
