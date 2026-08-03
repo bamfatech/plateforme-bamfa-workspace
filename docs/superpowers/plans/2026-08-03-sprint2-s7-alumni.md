@@ -2571,23 +2571,30 @@ def test_la_suspension_desactive_le_compte():
 
 
 @pytest.mark.django_db
-def test_un_alumni_suspendu_ne_peut_plus_appeler_l_api():
+def test_la_suspension_bloque_l_authentification_par_jeton():
     """SimpleJWT refuse un utilisateur inactif : la suspension prend effet à la
-    requête suivante, sans mise en liste noire des jetons."""
+    requête suivante, sans mise en liste noire des jetons.
+
+    Le contrôle passe par un vrai jeton dans le cookie (et non
+    `force_authenticate`, qui court-circuite l'authentification et ne
+    prouverait rien) et par `/auth/me/`, livré en S1 — la vue est donc
+    indépendante des tâches suivantes.
+    """
+    from django.conf import settings
+    from rest_framework_simplejwt.tokens import RefreshToken
+
     create_roles()
     user = User.objects.create_user(email="awa@example.org", password="x")
     user.groups.add(Group.objects.get(name="Alumni"))
     profil = _profil(user=user)
+
     client = APIClient()
-    client.force_authenticate(user=user)
-    assert client.get("/api/v1/alumni/moi/").status_code == 200
+    client.cookies[settings.AUTH_COOKIE] = str(RefreshToken.for_user(user).access_token)
+    assert client.get("/api/v1/auth/me/").status_code == 200
 
     _client("Administrateur").post(f"{LISTE}{profil.pk}/suspendre/")
 
-    user.refresh_from_db()
-    client_suspendu = APIClient()
-    client_suspendu.force_authenticate(user=user)
-    assert client_suspendu.get("/api/v1/alumni/moi/").status_code in (401, 403)
+    assert client.get("/api/v1/auth/me/").status_code == 401
 
 
 @pytest.mark.django_db
@@ -2835,12 +2842,13 @@ router.register(
 Lancer : `.venv/bin/pytest tests/test_alumni_admin_api.py -q`
 Attendu : 17 passed (le test paramétré compte pour 3)
 
-> Le test `test_un_alumni_suspendu_ne_peut_plus_appeler_l_api` dépend de la vue `moi/` de la tâche 8. Si l'ordre d'exécution des tâches est respecté, il échouera d'abord en 404 : **le déplacer temporairement en `@pytest.mark.skip` n'est pas autorisé**. Exécuter la tâche 8 avant de valider ce fichier, ou écrire la tâche 8 d'abord — les deux ordres sont acceptables, mais la suite complète doit être verte au commit final de la tâche 8.
+**Cette tâche est vérifiable seule** : aucun de ses tests ne dépend d'une vue livrée plus tard. La suite complète doit être verte avant le commit.
 
 - [ ] **Étape 8 : lint et commit**
 
 ```bash
 .venv/bin/ruff check --fix . && .venv/bin/ruff check .
+.venv/bin/pytest -q
 git add apps/alumni tests/test_alumni_admin_api.py
 git commit -m "feat: annuaire admin alumni + cycle de vie (suspension, reactivation, archivage, invitation)"
 ```
