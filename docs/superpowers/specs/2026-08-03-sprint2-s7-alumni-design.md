@@ -217,7 +217,9 @@ Ce fichier vit dans `apps/common` et non dans `apps/alumni` parce que S9 et S17 
 
 ### 7.2 Permissions propres à la slice — `apps/alumni/permissions.py`
 
-`CanReviewRegistrations` (Administrateur) · `CanManageDirectory` (Administrateur) · `CanReadAdminDirectory` et `CanImportAlumni` (Administrateur ou Secrétaire) · `IsOwnProfile` (niveau objet).
+`CanReviewRegistrations` (Administrateur) · `CanManageDirectory` (Administrateur) · `CanReadAdminDirectory` et `CanImportAlumni` (Administrateur ou Secrétaire).
+
+**Aucune permission de niveau objet pour « son propre profil ».** La vue `moi/` résout son objet par `AlumniProfile.objects.filter(user=request.user)` : le périmètre est porté par le **queryset**, ce qui est plus sûr qu'une vérification a posteriori — il n'existe aucun chemin de code par lequel un autre profil pourrait être atteint.
 
 ### 7.3 Matrice
 
@@ -341,10 +343,10 @@ Sous `/api/v1/alumni/`. Pagination, filtres, recherche et format d'erreur sont c
 
 | Méthode | Chemin | Permission |
 |---|---|---|
-| `GET` | `admin/inscriptions/` (+ `{id}/`) — filtre `status`, recherche email/nom | `CanReadAdminDirectory` |
+| `GET` | `admin/inscriptions/` (+ `{id}/`) — filtre `statut`, recherche email/nom | `CanReadAdminDirectory` |
 | `POST` | `admin/inscriptions/{id}/approuver/` | `CanReviewRegistrations` |
 | `POST` | `admin/inscriptions/{id}/rejeter/` — corps `{motif}` facultatif | `CanReviewRegistrations` |
-| `GET` | `admin/profils/` — filtres `status`, `promotion`, `secteur`, `pays`, `consentement`, **`a_un_compte`** (booléen : `user` renseigné ou non — sert à repérer les profils importés qui n'ont pas encore activé leur accès) ; recherche email incluse | `CanReadAdminDirectory` |
+| `GET` | `admin/profils/` — filtres `statut`, `promotion`, `secteur`, `pays`, `consentement`, **`a_un_compte`** (booléen : `user` renseigné ou non — sert à repérer les profils importés qui n'ont pas encore activé leur accès) ; recherche email incluse | `CanReadAdminDirectory` |
 | `GET` / `PATCH` | `admin/profils/{id}/` — `PATCH` réservé à l'Administrateur | `CanReadAdminDirectory` / `CanManageDirectory` |
 | `POST` | `admin/profils/{id}/suspendre/` · `reactiver/` · `archiver/` · `inviter/` | `CanManageDirectory` |
 | `POST` | `admin/imports/` — multipart, champs `fichier` et `strict` → renvoie le rapport | `CanImportAlumni` |
@@ -354,14 +356,14 @@ Sous `/api/v1/alumni/`. Pagination, filtres, recherche et format d'erreur sont c
 
 | Méthode | Chemin | Permission | Effet |
 |---|---|---|---|
-| `GET` / `PATCH` | `moi/` | `IsAuthenticated` + `IsOwnProfile` | Son profil. **404** si l'utilisateur n'a pas de profil alumni. Champs modifiables : coordonnées, parcours, biographie, LinkedIn, `directory_consent`. `email`, `promotion` et `status` restent réservés à l'administration |
+| `GET` / `PATCH` | `moi/` | `IsAuthenticated` (périmètre porté par le queryset) | Son profil. **404** si l'utilisateur n'a pas de profil alumni. Champs modifiables : coordonnées, parcours, biographie, LinkedIn, `directory_consent`. `email`, `promotion` et `status` restent réservés à l'administration |
 
 ## 14. Crochets pour les slices suivantes
 
 Aucun endpoint spéculatif n'est créé. Ce qui est délibérément mis en place :
 
-- **S9 — Opportunités** : les filtres de `admin/profils/` **sont** l'API de ciblage (`promotion`, `secteur`, `pays`, `status`, `a_un_compte`). S9 réutilise le queryset filtré pour construire sa sélection de destinataires.
-- **S17 — Messaging et statistiques** : mêmes filtres pour la sélection ; comptages par `status` et `promotion` directement disponibles.
+- **S9 — Opportunités** : les filtres de `admin/profils/` **sont** l'API de ciblage (`promotion`, `secteur`, `pays`, `statut`, `a_un_compte`). S9 réutilise le queryset filtré pour construire sa sélection de destinataires.
+- **S17 — Messaging et statistiques** : mêmes filtres pour la sélection ; comptages par `statut` et `promotion` directement disponibles.
 - **S13 — Réalisations et succès alumni** : `ALUMNI_SUCCESS` pointera vers `AlumniProfile` (clé stable, indépendante de l'existence d'un compte), pas vers `User`.
 - **`mandate`** : FK nullable déjà en place pour les pages « équipe par mandat ».
 - **`apps/common/permissions.py`** : `HasAnyRole` est écrit pour être réutilisé tel quel par toutes les slices suivantes.
