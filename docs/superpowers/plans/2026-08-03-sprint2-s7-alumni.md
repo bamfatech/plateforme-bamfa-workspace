@@ -5108,10 +5108,16 @@ export interface Registration {
   country: string;
   phone: string;
   city: string;
+  university: string;
+  mcf_program: string;
   sector: string;
   sector_display: string;
   current_position: string;
   organization: string;
+  bio: string;
+  linkedin_url: string;
+  birth_date: string | null;
+  gender: string;
   directory_consent: boolean;
   status: RegistrationStatus;
   status_display: string;
@@ -5148,19 +5154,31 @@ export interface DirectoryFilters {
   promotion?: string;
   secteur?: string;
   pays?: string;
+  ordering?: string;
   page?: number;
+  page_size?: number;
 }
 
 export interface AdminProfileFilters extends DirectoryFilters {
   statut?: string;
-  consentement?: string;
-  a_un_compte?: string;
+  // Booléens et non chaînes : le backend expose `consentement` et
+  // `a_un_compte` en `BooleanFilter`. Les typer `string` interdirait de
+  // passer `false` — précisément la valeur que `cleanParams` préserve.
+  // Conséquence pour la tâche 17 : la barre de filtres pilote ces deux
+  // champs depuis des `<Select>` dont la valeur est une chaîne ; la
+  // conversion `"true"`/`"false"`/`""` → `true`/`false`/`undefined` se fait
+  // à la frontière du composant, pas en laissant filer la chaîne.
+  consentement?: boolean;
+  a_un_compte?: boolean;
 }
 
 export interface RegistrationFilters {
   search?: string;
   statut?: string;
+  promotion?: string;
+  ordering?: string;
   page?: number;
+  page_size?: number;
 }
 ```
 
@@ -5269,6 +5287,10 @@ export function useProfileAction() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["alumni", "profils"] });
+      // `suspendre` et `archiver` modifient exactement le statut qui
+      // conditionne `in_directory()` : sans cette invalidation, un annuaire
+      // public monté en parallèle continuerait d'afficher un profil retiré.
+      queryClient.invalidateQueries({ queryKey: ["alumni", "annuaire"] });
     },
   });
 }
