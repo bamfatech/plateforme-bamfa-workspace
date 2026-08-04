@@ -6528,6 +6528,11 @@ export function ActivationForm({ token }: { token: string | null }) {
   const [motDePasse, setMotDePasse] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [erreurMotDePasse, setErreurMotDePasse] = useState("");
+  // Deux erreurs distinctes, chacune annoncée sur le champ qu'elle concerne :
+  // l'erreur serveur porte sur le mot de passe, la non-correspondance porte sur
+  // la confirmation — c'est ce champ que l'utilisateur doit corriger.
+  const [erreurConfirmation, setErreurConfirmation] = useState("");
+  const [compteExistant, setCompteExistant] = useState("");
   const [envoi, setEnvoi] = useState(false);
 
   useEffect(() => {
@@ -6573,17 +6578,26 @@ export function ActivationForm({ token }: { token: string | null }) {
       return;
     }
     if (motDePasse !== confirmation) {
-      setErreurMotDePasse("Les deux mots de passe ne correspondent pas.");
+      setErreurConfirmation("Les deux mots de passe ne correspondent pas.");
       return;
     }
 
     setEnvoi(true);
     try {
-      await api.post("/alumni/invitation/activer/", {
-        token,
-        password: motDePasse,
-      });
-      router.push("/connexion");
+      const { data } = await api.post<{ created: boolean; detail: string }>(
+        "/alumni/invitation/activer/",
+        { token, password: motDePasse },
+      );
+      // `created: false` = un compte existait déjà pour cette adresse ; il a
+      // été rattaché **sans que son mot de passe soit modifié** (garde-fou de
+      // la tâche 4). Rediriger comme si de rien n'était laisserait l'alumni
+      // essayer un mot de passe jamais appliqué, puis échouer sans comprendre.
+      // On affiche donc le message du serveur au lieu de rediriger.
+      if (data.created) {
+        router.push("/connexion");
+      } else {
+        setCompteExistant(data.detail);
+      }
     } catch (erreur) {
       setErreurMotDePasse(
         messageApi(
@@ -6613,6 +6627,15 @@ export function ActivationForm({ token }: { token: string | null }) {
     return <Alert variant="danger">{erreurJeton}</Alert>;
   }
 
+  if (compteExistant) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Alert variant="info">{compteExistant}</Alert>
+        <Link href="/connexion">Se connecter</Link>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-6">
       <div>
@@ -6639,6 +6662,7 @@ export function ActivationForm({ token }: { token: string | null }) {
         autoComplete="new-password"
         value={confirmation}
         onChange={(e) => setConfirmation(e.target.value)}
+        error={erreurConfirmation}
       />
 
       <Button type="submit" loading={envoi} className="self-start">
