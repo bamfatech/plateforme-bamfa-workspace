@@ -5848,19 +5848,32 @@ export function RegistrationForm() {
         <legend className="font-mono text-xs uppercase tracking-[0.15em] text-flame-ink">
           Confidentialité
         </legend>
-        <label className="flex items-start gap-3 text-sm text-stone-700">
+        {/* Le nom accessible de la case est la seule phrase de consentement ;
+            la mention légale est une *description* (`aria-describedby`), pas
+            un nom. Tout envelopper dans un `<label>` unique donnerait à la
+            case un nom accessible long d'un paragraphe — et, au passage,
+            rendrait `getByLabelText(/e-mail/i)` ambigu avec le champ e-mail.
+            `text-stone-600` et non `stone-500` : sur `paper`, stone-500
+            tombe à 3,43:1, sous le seuil AA (cf. commit 384644f). */}
+        <div className="flex items-start gap-3 text-sm text-stone-700">
           <input
+            id="directory-consent"
             type="checkbox"
             checked={consentement}
             onChange={(e) => setConsentement(e.target.checked)}
+            aria-describedby="directory-consent-hint"
             className="mt-0.5 h-4 w-4 rounded-sm border-ink/25 text-flame focus-visible:ring-2 focus-visible:ring-flame"
           />
-          <span>
-            J'accepte de figurer dans l'annuaire public des alumni BAMFA. Mon
-            adresse e-mail et mon téléphone ne seront jamais publiés. Ce choix
-            est révocable à tout moment.
-          </span>
-        </label>
+          <div>
+            <label htmlFor="directory-consent">
+              J'accepte de figurer dans l'annuaire public des alumni BAMFA.
+            </label>{" "}
+            <span id="directory-consent-hint" className="text-stone-600">
+              Mon adresse e-mail et mon téléphone ne seront jamais publiés. Ce
+              choix est révocable à tout moment.
+            </span>
+          </div>
+        </div>
       </fieldset>
 
       <Button type="submit" loading={envoi} className="self-start">
@@ -5871,7 +5884,7 @@ export function RegistrationForm() {
 }
 ```
 
-> La case à cocher porte le texte « annuaire public », ce qui permet au test de la retrouver par `getByLabelText(/annuaire public/i)`.
+> La case à cocher porte le texte « annuaire public », ce qui permet au test de la retrouver par `getByLabelText(/annuaire public/i)` — et son nom accessible se limite à cette phrase, sans absorber la mention légale.
 
 - [ ] **Étape 5 : écrire la page**
 
