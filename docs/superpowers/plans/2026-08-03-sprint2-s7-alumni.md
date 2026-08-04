@@ -3469,7 +3469,9 @@ import re
 import unicodedata
 from datetime import date
 
-from django.db import transaction
+from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator
+from django.db import DatabaseError, transaction
 
 from .models import (
     AlumniImport,
@@ -3506,6 +3508,14 @@ COLUMN_TO_FIELD = {
 }
 
 VALEURS_VRAIES = {"1", "true", "vrai", "oui", "yes", "x"}
+
+# Sens inverse de COLUMN_TO_FIELD : pour désigner un champ en erreur par son
+# nom de **colonne** — celui que l'administrateur voit dans son fichier — et
+# non par le nom du champ Django.
+FIELD_TO_COLUMN = {champ: colonne for colonne, champ in COLUMN_TO_FIELD.items()}
+
+MESSAGE_EMAIL_INVALIDE = "Adresse e-mail invalide ou absente."
+_VALIDATEUR_EMAIL = EmailValidator(message=MESSAGE_EMAIL_INVALIDE)
 
 
 class ImportFormatError(Exception):
@@ -3588,8 +3598,12 @@ def _build_values(row):
     qu'une mise à jour n'écrase jamais une valeur existante par du vide.
     """
     email = normalize_email(row.get("email"))
-    if not email or "@" not in email:
-        raise ValueError("Adresse e-mail invalide ou absente.")
+    if not email:
+        raise ValueError(MESSAGE_EMAIL_INVALIDE)
+    try:
+        _VALIDATEUR_EMAIL(email)
+    except ValidationError:
+        raise ValueError(MESSAGE_EMAIL_INVALIDE) from None
     if not row.get("nom"):
         raise ValueError("Le nom est obligatoire.")
     if not row.get("prenom"):
@@ -3620,13 +3634,46 @@ def _build_values(row):
     return valeurs
 
 
+def _message_erreur_validation(exc):
+    """Traduit une `ValidationError` de `full_clean()` en message par colonne."""
+    if hasattr(exc, "message_dict"):
+        return "; ".join(
+            f"{FIELD_TO_COLUMN.get(champ, champ)} : {' '.join(messages)}"
+            for champ, messages in exc.message_dict.items()
+        )
+    return "; ".join(exc.messages)
+
+
+def _enregistrer(instance):
+    """Valide puis enregistre une instance dans une savepoint dédiée à sa ligne.
+
+    Deux protections indissociables, apprises à la dure : `full_clean()`
+    convertit en `ValidationError` — donc en échec de cette seule ligne — ce
+    qui serait sinon une erreur base de données (une valeur trop longue, par
+    exemple) capable de rendre la transaction englobante inutilisable ; et la
+    savepoint (`transaction.atomic()` imbriqué) isole l'écriture, de sorte
+    qu'un échec côté base n'annule que cette ligne, jamais le lot.
+
+    Les `except` sont **hors** du bloc atomique : quand ils s'exécutent, la
+    savepoint est déjà annulée et la transaction englobante reste saine.
+    """
+    try:
+        with transaction.atomic():
+            instance.full_clean()
+            instance.save()
+    except ValidationError as exc:
+        raise ValueError(_message_erreur_validation(exc)) from exc
+    except DatabaseError as exc:
+        raise ValueError(
+            f"Échec d'enregistrement en base pour cette ligne : {exc}"
+        ) from exc
+
+
 def _appliquer(valeurs, compteurs):
     email = valeurs["email"]
     profil = AlumniProfile.objects.filter(email=email).first()
     if profil is None:
-        AlumniProfile.objects.create(
-            source=AlumniProfile.Source.IMPORT, **valeurs
-        )
+        _enregistrer(AlumniProfile(source=AlumniProfile.Source.IMPORT, **valeurs))
         compteurs["created"] += 1
         return
 
@@ -3640,7 +3687,7 @@ def _appliquer(valeurs, compteurs):
         return
     for champ in modifies:
         setattr(profil, champ, valeurs[champ])
-    profil.save()
+    _enregistrer(profil)
     compteurs["updated"] += 1
 
 
@@ -3678,36 +3725,55 @@ def import_alumni(rows, *, uploaded_by, strict=False, filename=""):
                     )
                 )
             vues[email] = numero
-            _appliquer(valeurs, compteurs)
+            # `_appliquer` peut lui aussi lever `ValueError` (via
+            # `_enregistrer`) : la ligne échoue seule, comme une ligne
+            # invalide, et suit exactement le même chemin de rapport.
+            try:
+                _appliquer(valeurs, compteurs)
+            except ValueError as exc:
+                compteurs["failed"] += 1
+                lignes_rapport.append((numero, ligne, str(exc)))
+                if strict:
+                    raise _StrictAbort from exc
 
     try:
-        with transaction.atomic():
-            parcourir()
-    except _StrictAbort:
-        # Les écritures sont annulées ; le rapport, lui, est écrit ensuite,
-        # hors de la transaction abandonnée, afin que la trace survive.
-        compteurs["created"] = 0
-        compteurs["updated"] = 0
-        compteurs["skipped"] = 0
+        try:
+            with transaction.atomic():
+                parcourir()
+        except _StrictAbort:
+            # Les écritures sont annulées ; les compteurs d'écriture retombent
+            # donc à zéro, tandis que `total` et `failed` décrivent ce qui a
+            # été lu jusqu'à l'abandon.
+            compteurs["created"] = 0
+            compteurs["updated"] = 0
+            compteurs["skipped"] = 0
+    finally:
+        # `finally` : le rapport est la trace de la tentative, il doit survivre
+        # à n'importe quel échec de la tentative — y compris une exception
+        # imprévue qui s'échapperait de la boucle. Écrit une seule fois, hors
+        # de la transaction éventuellement abandonnée.
+        rapport = AlumniImport.objects.create(
+            uploaded_by=uploaded_by,
+            filename=filename,
+            strict=strict,
+            rows_total=compteurs["total"],
+            rows_created=compteurs["created"],
+            rows_updated=compteurs["updated"],
+            rows_skipped=compteurs["skipped"],
+            rows_failed=compteurs["failed"],
+        )
+        AlumniImportError.objects.bulk_create(
+            [
+                AlumniImportError(
+                    import_run=rapport,
+                    line_number=numero,
+                    raw_row=ligne,
+                    message=message,
+                )
+                for numero, ligne, message in lignes_rapport
+            ]
+        )
 
-    rapport = AlumniImport.objects.create(
-        uploaded_by=uploaded_by,
-        filename=filename,
-        strict=strict,
-        rows_total=compteurs["total"],
-        rows_created=compteurs["created"],
-        rows_updated=compteurs["updated"],
-        rows_skipped=compteurs["skipped"],
-        rows_failed=compteurs["failed"],
-    )
-    AlumniImportError.objects.bulk_create(
-        [
-            AlumniImportError(
-                import_run=rapport, line_number=numero, raw_row=ligne, message=message
-            )
-            for numero, ligne, message in lignes_rapport
-        ]
-    )
     return rapport
 ```
 
