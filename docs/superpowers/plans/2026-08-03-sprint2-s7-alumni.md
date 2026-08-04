@@ -46,8 +46,15 @@ Depuis `plateforme-bamfa-frontend/` :
 npm run test                    # Vitest
 npm run test -- Composant       # un fichier
 npm run build                   # build Next.js
+npx tsc --noEmit                # type-check COMPLET, fichiers de test inclus
 npm run generate:api            # régénère lib/api/schema.d.ts (backend doit tourner)
 ```
+
+> **`npm run build` ne suffit pas comme porte de typage.** Le type-check de
+> `next build` **ignore silencieusement les `*.test.tsx`** (constaté en tâche 13,
+> vérifié par canaris). Une erreur de type vivant uniquement dans un test passe
+> donc le build sans être vue. Toute tâche frontend touchant des types doit
+> lancer `npx tsc --noEmit` en plus du build.
 
 Depuis le workspace :
 
