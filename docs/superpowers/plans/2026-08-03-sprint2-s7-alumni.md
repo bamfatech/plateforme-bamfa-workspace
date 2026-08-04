@@ -5996,12 +5996,42 @@ describe("Directory", () => {
   });
 
   it("n'affiche jamais d'adresse e-mail ni de téléphone", async () => {
-    mock.onGet("/alumni/annuaire/").reply(200, reponse([ENTREE]));
+    // La fiche de référence ne porte ni email ni téléphone : vérifier leur
+    // absence contre elle seule ne pincerait RIEN — une carte qui afficherait
+    // fautivement l'email passerait, puisqu'aucun email n'existe dans le jeu
+    // de données. On injecte donc une fiche qui en porte un.
+    const AVEC_EMAIL = {
+      ...ENTREE,
+      id: 2,
+      first_name: "Kofi",
+      last_name: "Mensah",
+      email: "kofi.mensah@example.com",
+    };
+    mock.onGet("/alumni/annuaire/").reply(200, reponse([ENTREE, AVEC_EMAIL]));
 
     renderWithClient(<Directory />);
     await screen.findByText("Awa Doe");
 
     expect(screen.queryByText(/@/)).not.toBeInTheDocument();
+  });
+
+  it("ramène à la première page quand un filtre change", async () => {
+    // Sans cette assertion, « envoie le filtre de secteur choisi » passerait
+    // même si `page` n'était pas remis à 1 : le test part déjà de la page 1.
+    mock.onGet("/alumni/annuaire/").reply(200, reponse([ENTREE], 45));
+    renderWithClient(<Directory />);
+    await screen.findByText("Awa Doe");
+
+    await userEvent.click(screen.getByRole("button", { name: "Suivant" }));
+    await waitFor(() =>
+      expect(mock.history.get.at(-1)?.params?.page).toBe(2),
+    );
+
+    await userEvent.selectOptions(screen.getByLabelText(/secteur/i), "sante");
+
+    await waitFor(() =>
+      expect(mock.history.get.at(-1)?.params?.page).toBe(1),
+    );
   });
 
   it("affiche un message quand l'annuaire est vide", async () => {
