@@ -4772,7 +4772,7 @@ export function Textarea({
 ```tsx
 "use client";
 
-import { useEffect, useId, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
 
 interface ModalProps {
@@ -4782,16 +4782,48 @@ interface ModalProps {
   children: ReactNode;
 }
 
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function Modal({ open, title, onClose, children }: ModalProps) {
   const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
 
+  // `aria-modal="true"` promet que rien d'autre n'est atteignable : sans
+  // gestion du focus, la promesse est fausse — on peut tabuler derrière le
+  // dialogue, qui porte pourtant ici une action destructrice. Focus à
+  // l'ouverture, confinement de Tab, restitution à la fermeture.
   useEffect(() => {
     if (!open) return;
+    const previous = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const cibles = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE),
+      );
+      if (cibles.length === 0) return;
+      const premier = cibles[0];
+      const dernier = cibles[cibles.length - 1];
+      if (event.shiftKey && document.activeElement === premier) {
+        event.preventDefault();
+        dernier.focus();
+      } else if (!event.shiftKey && document.activeElement === dernier) {
+        event.preventDefault();
+        premier.focus();
+      }
     }
+
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      previous?.focus();
+    };
   }, [open, onClose]);
 
   if (!open) return null;
@@ -4804,6 +4836,8 @@ export function Modal({ open, title, onClose, children }: ModalProps) {
         className="absolute inset-0 bg-ink/60"
       />
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
