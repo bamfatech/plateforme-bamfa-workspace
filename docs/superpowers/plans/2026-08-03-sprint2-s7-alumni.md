@@ -7957,6 +7957,7 @@ Attendu : ÉCHEC — module `./ImportsView` introuvable.
 Créer `components/admin/alumni/ImportReportCard.tsx` :
 
 ```tsx
+import { Alert } from "@/components/ui/Alert";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@/components/ui/Table";
 import { cardShell, monoLabel } from "@/components/ui/styles";
 import type { ImportReport } from "@/lib/alumni/types";
@@ -7989,6 +7990,20 @@ export function ImportReportCard({ report }: { report: ImportReport }) {
           </li>
         ))}
       </ul>
+
+      {/* Sans ce cadrage, les compteurs du mode strict induisent en erreur :
+          « 3 lignes lues · 0 créés · 0 mis à jour · 0 sans changement · 1 en
+          erreur » laisse croire que deux lignes se sont volatilisées. En
+          réalité rien n'a été écrit — volontairement — et la lecture s'est
+          arrêtée à la première ligne fautive. */}
+      {report.strict && (
+        <Alert variant="warning">
+          Mode « tout ou rien » : l'import s'est arrêté à la première ligne
+          invalide et <strong>aucun profil n'a été créé ni mis à jour</strong>.
+          Le nombre de lignes lues s'arrête à cette ligne — il ne couvre pas la
+          totalité du fichier.
+        </Alert>
+      )}
 
       {report.uploaded_by_email && (
         <p className="text-xs text-stone-600">
