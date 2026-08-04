@@ -5169,13 +5169,23 @@ export interface RegistrationFilters {
 Créer `lib/alumni/params.ts` :
 
 ```ts
-type Filters = Record<string, string | number | boolean | null | undefined>;
+type Value = string | number | boolean | null | undefined;
 
 /** Retire les filtres non renseignés : une chaîne vide envoyée à l'API
- *  filtrerait sur « vide » au lieu de ne pas filtrer du tout. */
-export function cleanParams(filters: Filters): Record<string, string | number | boolean> {
+ *  filtrerait sur « vide » au lieu de ne pas filtrer du tout. `false` est
+ *  conservé — c'est une valeur signifiante pour `a_un_compte` et
+ *  `consentement`.
+ *
+ *  Générique sur `T extends object`, et non un paramètre typé
+ *  `Record<string, Value>` : les interfaces de filtres (`DirectoryFilters`,
+ *  `AdminProfileFilters`…) n'ont pas de signature d'index, et TypeScript
+ *  refuse d'assigner un type nommé qui en manque à un type qui en exige une.
+ *  Sans le génerique, `npm run build` échoue au type-check. */
+export function cleanParams<T extends object>(
+  filters: T,
+): Record<string, string | number | boolean> {
   return Object.fromEntries(
-    Object.entries(filters).filter(
+    Object.entries(filters as Record<string, Value>).filter(
       ([, value]) => value !== undefined && value !== null && value !== "",
     ),
   ) as Record<string, string | number | boolean>;
