@@ -8415,7 +8415,28 @@ it("redirige un administrateur vers le back-office après connexion", async () =
 });
 ```
 
-> **Lire d'abord `components/auth/LoginForm.test.tsx`** : il possède déjà un mock de `next/navigation` et un `MockAdapter`. Réutiliser leurs noms (`replace`, `mock`) au lieu d'en créer de nouveaux, et ajuster les deux cas ci-dessus à la nomenclature en place.
+> **Lire d'abord `components/auth/LoginForm.test.tsx`** : il possède déjà un mock de `next/navigation` et un `MockAdapter`. Réutiliser leurs noms (`replace`, `mock`) au lieu d'en créer de nouveaux.
+>
+> **⚠ Ces deux cas tels qu'écrits ne pincent rien, et il faut les isoler.** Les
+> deux sites de redirection se masquent mutuellement : l'effet de montage
+> (`isAuthenticated`) se déclenche depuis la même écriture de cache
+> `onSuccess` que `login.mutateAsync`, produit lui aussi un `router.replace`
+> correct, et `toHaveBeenCalledWith` n'assure que *qu'un* appel correspondant
+> a eu lieu — pas lequel. Vérifié par exécution : remplacer
+> `landingPathForUser(connecte)` par `landingPathForUser(user)` — le bug même
+> que cette tâche corrige — laisse les tests verts ; **supprimer la ligne de
+> redirection aussi**.
+>
+> Isoler chaque site dans son propre test, en mockant `useAuth` (le motif
+> existe dans `app/(admin)/admin-layout.test.tsx`) :
+> - **site post-connexion** : `isAuthenticated: false` (l'effet de montage ne
+>   part donc jamais) et `login.mutateAsync` qui résout avec l'utilisateur
+>   testé. Seule la ligne sous test peut rediriger.
+> - **site de montage** : `isAuthenticated: true` avec un `user` donné,
+>   assertion sur la destination correspondant à son rôle.
+>
+> Valider chacun par mutation : supprimer la ligne visée doit faire échouer
+> son test.
 
 Créer `app/(alumni)/espace.test.tsx` :
 
