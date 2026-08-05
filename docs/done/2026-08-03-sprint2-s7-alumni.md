@@ -84,6 +84,9 @@ Le dernier est le **Critical** de la revue finale : un profil suspendu ou archiv
 
 - **`npm run build` ne type-vérifie pas les `*.test.tsx`** : le type-check de `next build` les ignore silencieusement, donc deux erreurs de typage sont passées la porte. La porte réelle est `npx tsc --noEmit`, désormais dans les commandes du plan.
 - **Un serveur lancé avec `--noreload` sert du code périmé** : mon premier parcours de bout en bout testait l'état d'avant la vague de correction et m'a donné un faux négatif sur le correctif C1. Vérifier ce qu'exécute réellement le processus avant de conclure.
+- **La suite frontend n'était pas hermétique au réseau**, et je ne l'ai découvert qu'en relançant les tests à la clôture, backend éteint. `fetchCsrfToken` (`lib/api/client.ts`, livré en S4) appelle l'instance axios **par défaut**, pas l'instance `api` que les tests interceptent : la pré-requête CSRF déclenchée par tout `POST`/`PUT`/`PATCH`/`DELETE` échappait aux mocks et partait sur le réseau. La suite ne passait donc que parce qu'un backend écoutait *par hasard* sur le port 8000 — lancé pour régénérer le schéma et dérouler le parcours. Sans lui : **24 échecs sur 157**, et la CI aurait été rouge au premier push. Corrigé en interceptant l'instance par défaut dans `vitest.setup.ts`, avec `onNoMatch: "throwException"` pour qu'un futur appel non mocké échoue bruyamment au lieu de filer vers le réseau. La suite est désormais verte avec le port 8000 prouvé injoignable.
+
+> **Leçon de méthode, la plus coûteuse de la slice** : j'ai annoncé « 157 tests verts » à chaque point d'étape sans vérifier que ce vert était *hermétique*. Une suite qui dépend d'un service extérieur non déclaré n'est pas verte, elle est chanceuse. Ce que la skill de clôture impose — relancer la suite sur l'arbre qu'on s'apprête à intégrer — est exactement ce qui l'a révélé.
 
 ## Commits
 
@@ -101,7 +104,7 @@ Le plan a été **amendé 15 fois en cours d'exécution**, afin que code et plan
 | `pytest` | **206 passed** (34 au départ de la slice) |
 | `ruff check .` | propre |
 | `makemigrations --check --dry-run` | propre |
-| `npm run test` | **157 passed** / 41 fichiers (54 au départ) |
+| `npm run test` | **157 passed** / 41 fichiers (54 au départ), **backend éteint** — suite hermétique |
 | `npm run build` | réussi |
 | `npx tsc --noEmit` | propre |
 
